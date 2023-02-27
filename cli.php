@@ -1,60 +1,21 @@
 <?php
 
-use GeekBrains\LevelTwo\Blog\User;
-use GeekBrains\LevelTwo\Person\{Name, Person};
-use GeekBrains\LevelTwo\Blog\Post;
-use GeekBrains\LevelTwo\Blog\Repositories\InMemoryUsersRepository;
-use GeekBrains\LevelTwo\Blog\Exceptions\UserNotFoundException;
+use GeekBrains\LevelTwo\Blog\Command\Arguments;
+use GeekBrains\LevelTwo\Blog\Command\CreateUserCommand;
+use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\SqliteUsersRepository;
 
-//spl_autoload_register('load');
 
 include __DIR__ . "/vendor/autoload.php";
 
-function load($className)
-{
-//приходит GeekBrains\Person\Name
-    $file = $className . ".php"; // Person/Name.php
-    $file = str_replace("\\", "/", $file);
-    //нужно src/Person/Name.php
-    if (file_exists($file)) {
-        include $file;
-    }
-}
-var_dump($argv);
-//$faker = Faker\Factory::create('ru_RU');
+//Создаём объект подключения к SQLite
+$connection = new PDO('sqlite:' . __DIR__ . '/blog.sqlite');
 
-//echo $faker->name() . PHP_EOL;
-//echo $faker->realText(rand(100, 200)) . PHP_EOL;
+$usersRepository = new SqliteUsersRepository($connection);
 
-$name = new Name('Peter', 'Sidorov');
+$command = new CreateUserCommand($usersRepository);
 
-$user = new User(1, $name, "Admin");
-echo $user;
-
-
-$name = new Name('Peter', 'Sidorov');
-$person = new Person($name, new DateTimeImmutable());
-
-
-$post = new Post(
-    1,
-    $person,
-    'Всем привет!'
-);
-
-echo $post;
-
-$name2 = new Name('Иван', 'Таранов');
-$user2 = new User(2, $name2, "User");
-$userRepository = new InMemoryUsersRepository();
 try {
-$userRepository->save($user);
-$userRepository->save($user2);
-
-
-    echo $userRepository->get(1);
-    echo $userRepository->get(2);
-    echo $userRepository->get(3);
-} catch (UserNotFoundException | Exception $e) {
+    $command->handle(Arguments::fromArgv($argv));
+} catch (Exception $e) {
     echo $e->getMessage();
 }
