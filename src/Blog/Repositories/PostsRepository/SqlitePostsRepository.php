@@ -26,7 +26,7 @@ class SqlitePostsRepository implements PostsRepositoryInterface
         );
 
         $statement->execute([
-            ':uuid' => $post->getUuid(),
+            ':uuid' => $post->uuid(),
             ':author_uuid' => $post->getUser()->uuid(),
             ':title' => $post->getTitle(),
             ':text' => $post->getText()
@@ -35,6 +35,11 @@ class SqlitePostsRepository implements PostsRepositoryInterface
     }
 
 
+    /**
+     * @throws PostNotFoundException
+     * @throws UserNotFoundException
+     * @throws InvalidArgumentException
+     */
     public function get(UUID $uuid): Post
     {
         $statement = $this->connection->prepare(
